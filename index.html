@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vendite">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0f14" media="(prefers-color-scheme: dark)">
+<title>Vendite per linea</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&display=swap">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #111318;
+  --muted: #6b7280;
+  --line: #e4e6eb;
+  --accent: #3b5bdb;
+  --accent-ink: #ffffff;
+  --danger: #c2362b;
+  --good: #1a8f4c; --good-bg: #e4f5ea; --good-ink: #0f5c31;
+  --warn: #e2a400; --warn-bg: #fff4cc; --warn-ink: #7a5600;
+  --font: "Hanken Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0f14;
+    --surface: #151821;
+    --ink: #eceef3;
+    --muted: #8b93a7;
+    --line: #252a37;
+    --accent: #8da2ff;
+    --accent-ink: #0d0f14;
+    --danger: #ff8b7e;
+    --good: #4cc38a; --good-bg: #12301f; --good-ink: #9be3bd;
+    --warn: #f0c040; --warn-bg: #3a2f0c; --warn-ink: #f5d982;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  padding: max(28px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(56px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+}
+.wrap { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 32px; }
+h1 { font-weight: 300; font-size: clamp(30px, 6vw, 44px); letter-spacing: -0.03em; line-height: 1.05; margin: 0; }
+.totals { display: flex; gap: 28px; margin: 0; }
+.totals div { display: flex; flex-direction: column; }
+.totals dt { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.totals dd { margin: 0; font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+form.row { display: flex; gap: 10px; }
+input[type="text"], input[type="password"] {
+  flex: 1 1 auto; min-width: 0; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 14px; font-size: 16px;
+}
+input::placeholder { color: var(--muted); }
+.btn { background: var(--ink); color: var(--bg); border: 0; border-radius: 10px; padding: 12px 18px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn.danger { background: var(--danger); color: var(--surface); }
+.btn.small { padding: 7px 12px; font-size: 14px; }
+
+#msg { margin: 0; color: var(--danger); font-size: 14px; }
+#grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid transparent; border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.card h2 { margin: 0 0 8px; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: var(--ink); overflow-wrap: anywhere; }
+.top { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.info { flex: 1 1 auto; min-width: 0; }
+.thumb.big { width: 96px; height: 96px; border-radius: 18px; font-size: 34px; }
+.avgrow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 10px; }
+.avg-label { color: var(--muted); font-size: 14px; }
+.avgrow .pill { margin-left: 0; }
+.toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; background: none; border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; cursor: pointer; font-size: 14px; font-weight: 500; }
+.toggle:hover { border-color: var(--muted); }
+.toggle .chev { color: var(--muted); transition: transform 0.2s; }
+.toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.details { display: flex; flex-direction: column; gap: 16px; }
+.tools { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.actions { display: flex; gap: 14px; flex: none; }
+.thumb { width: 46px; height: 46px; flex: none; padding: 0; border-radius: 12px; border: 1px solid var(--line); background: var(--bg) center / cover no-repeat; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.thumb:hover { border-color: var(--muted); }
+.rename { display: flex; gap: 8px; flex-wrap: wrap; }
+.rename input { flex: 1 1 160px; }
+.card.good { border-left: 4px solid var(--good); }
+.card.warn { border-left: 4px solid var(--warn); }
+.card.good .spark .dot { fill: var(--good); }
+.card.warn .spark .dot { fill: var(--warn); }
+.pill { display: inline-block; vertical-align: middle; margin-left: 10px; border-radius: 999px; padding: 3px 11px; font-size: 12px; font-weight: 500; letter-spacing: 0; }
+.pill.good { background: var(--good-bg); color: var(--good-ink); }
+.pill.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.link { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 13px; padding: 2px 0; }
+.link:hover { color: var(--danger); }
+.avg { font-size: 34px; font-weight: 500; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.avg small { font-size: 14px; letter-spacing: 0; color: var(--muted); margin-left: 8px; font-weight: 400; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.meta b { color: var(--ink); font-weight: 500; }
+svg.spark { width: 100%; height: 64px; display: block; overflow: visible; }
+.spark .ln { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.spark .av { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
+.spark .dot { fill: var(--accent); }
+.spark-empty { height: 64px; display: flex; align-items: center; color: var(--muted); font-size: 13px; border-bottom: 1px solid var(--line); }
+.add { display: flex; gap: 8px; }
+.chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.chips li { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; padding: 2px 4px 2px 12px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.chips button { background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0 8px; font-size: 18px; line-height: 1.2; }
+.chips button:hover { color: var(--danger); }
+.confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+.confirm span { flex: 1 1 100%; }
+#empty { color: var(--muted); text-align: center; padding: 40px 12px; border: 1px dashed var(--line); border-radius: 16px; }
+
+details.sync { border-top: 1px solid var(--line); padding-top: 18px; color: var(--muted); font-size: 14px; }
+details.sync summary { cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
+.sync-body { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.sync-body p { margin: 0; }
+.sync-body .row2 { display: flex; flex-wrap: wrap; gap: 8px; }
+.sync-body label { color: var(--ink); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Vendite per linea</h1>
+    <dl class="totals" aria-label="Totali">
+      <div><dt>Linee</dt><dd id="t-lines">0</dd></div>
+      <div><dt>Vendite</dt><dd id="t-count">0</dd></div>
+      <div><dt>Media di tutte</dt><dd id="t-sum">—</dd></div>
+    </dl>
+  </header>
+
+  <form class="row" id="newline" autocomplete="off">
+    <button type="button" class="thumb" id="newline-pick" aria-label="Aggiungi un'immagine alla linea">+</button>
+    <input type="file" id="newline-file" accept="image/*" hidden>
+    <label class="sr-only" for="newline-name">Nome della nuova linea</label>
+    <input type="text" id="newline-name" maxlength="80" placeholder="Nuova linea, per esempio Animali">
+    <button class="btn" type="submit">Aggiungi</button>
+  </form>
+  <p id="msg" role="status" hidden></p>
+
+  <div id="empty" hidden>Nessuna linea per ora. Scrivi un nome qui sopra, poi aggiungi le vendite.</div>
+  <section id="grid" aria-label="Linee"></section>
+
+  <details class="sync" id="syncbox">
+    <summary><span>Sincronizzazione tra dispositivi</span><span id="sync">Solo su questo dispositivo</span></summary>
+    <div class="sync-body">
+      <p>I dati si salvano su questo dispositivo. Per vederli uguali su computer, telefono e iPad, collega un repository privato di GitHub. Le istruzioni sono nel file README.</p>
+      <label for="gh-repo">Repository dei dati</label>
+      <input type="text" id="gh-repo" placeholder="tuonome/vendite-dati" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <label for="gh-token">Token di accesso</label>
+      <input type="password" id="gh-token" placeholder="github_pat_…" autocomplete="off">
+      <div class="row2">
+        <button class="btn small" type="button" id="gh-save">Salva e collega</button>
+        <button class="btn ghost small" type="button" id="gh-off">Scollega</button>
+      </div>
+    </div>
+  </details>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var KEY = 'vendite.v1', GHKEY = 'vendite.gh';
+  var THRESH = 100; /* sotto questa media la linea è gialla, da qui in su è verde */
+  var fmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+  var $ = function (id) { return document.getElementById(id); };
+  var grid = $('grid');
+  var state = loadState();
+  var gh = loadGh();
+  var sha = null, timer = null, syncing = false, again = false;
+  var openIds = new Set();
+
+  function loadState() {
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY));
+      if (s && Array.isArray(s.lines)) return s;
+    } catch (e) {}
+    return { lines: [], updated: 0 };
+  }
+  function loadGh() {
+    try {
+      var g = JSON.parse(localStorage.getItem(GHKEY));
+      if (g && g.repo && g.token) return g;
+    } catch (e) {}
+    return null;
+  }
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (e) { say('Questo browser non permette di salvare i dati. Esci dalla navigazione privata.'); }
+  }
+  function uid() { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3); }
+  function say(m) {
+    var el = $('msg');
+    el.textContent = m || '';
+    el.hidden = !m;
+    clearTimeout(say.t);
+    if (m) say.t = setTimeout(function () { el.hidden = true; }, 6000);
+  }
+  function parse(s) {
+    var t = String(s).replace(/€/g, '').replace(/\s/g, '');
+    if (!t) return NaN;
+    if (t.indexOf(',') >= 0) t = t.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    var n = Number(t);
+    if (!isFinite(n) || n < 0 || n >= 1e9) return NaN;
+    return Math.round(n * 100) / 100;
+  }
+  function stats(sales) {
+    var n = sales.length, sum = 0, min = 0, max = 0;
+    for (var i = 0; i < n; i++) {
+      var v = sales[i].v;
+      sum += v;
+      if (i === 0 || v < min) min = v;
+      if (i === 0 || v > max) max = v;
+    }
+    return { n: n, sum: sum, avg: n ? sum / n : 0, min: min, max: max };
+  }
+  function h(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function toThumb(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file), im = new Image();
+      im.onload = function () {
+        var S = 160, c = document.createElement('canvas');
+        c.width = S; c.height = S;
+        var m = Math.min(im.width, im.height);
+        c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, S, S);
+        URL.revokeObjectURL(url);
+        res(c.toDataURL('image/jpeg', 0.82));
+      };
+      im.onerror = function () { URL.revokeObjectURL(url); rej(new Error('img')); };
+      im.src = url;
+    });
+  }
+  function setThumb(btn, data) {
+    btn.style.backgroundImage = data ? 'url(' + data + ')' : '';
+    btn.textContent = data ? '' : '+';
+  }
+
+  function sparkline(sales, avg) {
+    var shown = sales.slice(-30);
+    if (!shown.length) return h('div', 'spark-empty', 'Il grafico compare con la prima vendita');
+    var NS = 'http://www.w3.org/2000/svg', W = 300, H = 64, P = 6;
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.setAttribute('class', 'spark');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Ultime ' + shown.length + ' vendite, linea tratteggiata sulla media');
+    var top = Math.max.apply(null, shown.map(function (s) { return s.v; }).concat([avg])) || 1;
+    var y = function (v) { return H - P - (v / top) * (H - 2 * P); };
+    var x = function (i) { return shown.length === 1 ? W / 2 : P + (i / (shown.length - 1)) * (W - 2 * P); };
+    var av = document.createElementNS(NS, 'line');
+    av.setAttribute('class', 'av');
+    av.setAttribute('x1', 0); av.setAttribute('x2', W);
+    av.setAttribute('y1', y(avg)); av.setAttribute('y2', y(avg));
+    svg.appendChild(av);
+    if (shown.length > 1) {
+      var pl = document.createElementNS(NS, 'polyline');
+      pl.setAttribute('class', 'ln');
+      pl.setAttribute('points', shown.map(function (s, i) { return x(i).toFixed(1) + ',' + y(s.v).toFixed(1); }).join(' '));
+      svg.appendChild(pl);
+    }
+    var last = shown.length - 1;
+    var d = document.createElementNS(NS, 'ellipse');
+    d.setAttribute('class', 'dot');
+    d.setAttribute('cx', x(last)); d.setAttribute('cy', y(shown[last].v));
+    d.setAttribute('rx', 3.5); d.setAttribute('ry', 3.5);
+    svg.appendChild(d);
+    return svg;
+  }
+
+  function toggleLabel(n, open) {
+    return open ? 'Nascondi i dettagli' : 'Mostra i dettagli (' + n + (n === 1 ? ' vendita)' : ' vendite)');
+  }
+
+  function renderCard(line) {
+    var sales = line.sales || [];
+    var s = stats(sales);
+    var isOpen = openIds.has(line.id);
+    var tone = s.n ? (s.avg >= THRESH ? 'good' : 'warn') : '';
+    var c = h('article', 'card' + (tone ? ' ' + tone : ''));
+    c.dataset.id = line.id;
+
+    /* sempre visibile: foto, titolo, media, campo per la nuova vendita */
+    var top = h('div', 'top');
+    var tb = h('button', 'thumb big card-thumb');
+    tb.type = 'button';
+    tb.setAttribute('aria-label', line.img ? 'Cambia immagine' : 'Aggiungi immagine');
+    setThumb(tb, line.img);
+    top.appendChild(tb);
+    var info = h('div', 'info');
+    info.appendChild(h('h2', null, line.name));
+    var row = h('div', 'avgrow');
+    row.appendChild(h('span', 'avg', s.n ? fmt.format(s.avg) : '—'));
+    row.appendChild(h('span', 'avg-label', 'media'));
+    if (tone) row.appendChild(h('span', 'pill ' + tone, tone === 'good' ? 'da ' + fmt.format(THRESH).replace(',00', '') + ' in su' : 'sotto ' + fmt.format(THRESH).replace(',00', '')));
+    info.appendChild(row);
+    top.appendChild(info);
+    c.appendChild(top);
+
+    var form = h('form', 'add');
+    form.autocomplete = 'off';
+    var lab = h('label', 'sr-only', 'Importo della nuova vendita');
+    lab.htmlFor = 'in-' + line.id;
+    var inp = h('input');
+    inp.type = 'text'; inp.id = 'in-' + line.id; inp.placeholder = 'Nuova vendita, es. 110';
+    inp.setAttribute('inputmode', 'decimal');
+    var btn = h('button', 'btn', 'Aggiungi');
+    btn.type = 'submit';
+    form.appendChild(lab); form.appendChild(inp); form.appendChild(btn);
+    c.appendChild(form);
+
+    var tg = h('button', 'toggle');
+    tg.type = 'button';
+    tg.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    tg.setAttribute('aria-controls', 'd-' + line.id);
+    tg.appendChild(h('span', 'toggle-text', toggleLabel(s.n, isOpen)));
+    tg.appendChild(h('span', 'chev', '▾'));
+    c.appendChild(tg);
+
+    /* menu a comparsa: statistiche, grafico, vendite inserite, modifica ed elimina */
+    var d = h('div', 'details');
+    d.id = 'd-' + line.id;
+    d.hidden = !isOpen;
+
+    var meta = h('div', 'meta');
+    var cnt = h('span');
+    cnt.appendChild(h('b', null, String(s.n)));
+    cnt.appendChild(document.createTextNode(s.n === 1 ? ' vendita' : ' vendite'));
+    meta.appendChild(cnt);
+    if (s.n) {
+      [['totale', s.sum], ['minima', s.min], ['massima', s.max]].forEach(function (p) {
+        var sp = h('span');
+        sp.appendChild(document.createTextNode(p[0] + ' '));
+        sp.appendChild(h('b', null, fmt.format(p[1])));
+        meta.appendChild(sp);
+      });
+    }
+    d.appendChild(meta);
+    d.appendChild(sparkline(sales, s.avg));
+
+    if (s.n) {
+      var ul = h('ul', 'chips');
+      sales.slice().reverse().forEach(function (x) {
+        var li = h('li', null, fmt.format(x.v));
+        var b = h('button', null, '×');
+        b.type = 'button';
+        b.dataset.t = String(x.t); b.dataset.v = String(x.v);
+        b.setAttribute('aria-label', 'Rimuovi la vendita da ' + fmt.format(x.v));
+        li.appendChild(b);
+        ul.appendChild(li);
+      });
+      d.appendChild(ul);
+    }
+
+    var tools = h('div', 'tools');
+    var ed = h('button', 'link edit-open', 'Modifica nome');
+    ed.type = 'button';
+    tools.appendChild(ed);
+    if (line.img) {
+      var pr = h('button', 'link photo-rm', 'Rimuovi foto');
+      pr.type = 'button';
+      tools.appendChild(pr);
+    }
+    var del = h('button', 'link del-open', 'Elimina linea');
+    del.type = 'button';
+    tools.appendChild(del);
+    d.appendChild(tools);
+
+    var rn = h('form', 'rename');
+    rn.hidden = true; rn.autocomplete = 'off';
+    var rl = h('label', 'sr-only', 'Nuovo nome della linea');
+    rl.htmlFor = 'rn-' + line.id;
+    var ri = h('input');
+    ri.type = 'text'; ri.id = 'rn-' + line.id; ri.maxLength = 80; ri.value = line.name;
+    var rs = h('button', 'btn small', 'Salva'); rs.type = 'submit';
+    var rc = h('button', 'btn ghost small rename-cancel', 'Annulla'); rc.type = 'button';
+    rn.appendChild(rl); rn.appendChild(ri); rn.appendChild(rs); rn.appendChild(rc);
+    d.appendChild(rn);
+
+    var conf = h('div', 'confirm');
+    conf.hidden = true;
+    conf.appendChild(h('span', null, 'Elimino la linea e tutte le sue vendite?'));
+    var yes = h('button', 'btn danger small del-yes', 'Sì, elimina'); yes.type = 'button';
+    var no = h('button', 'btn ghost small del-no', 'Annulla'); no.type = 'button';
+    conf.appendChild(yes); conf.appendChild(no);
+    d.appendChild(conf);
+    c.appendChild(d);
+
+    var fi = h('input', 'card-file');
+    fi.type = 'file'; fi.accept = 'image/*'; fi.hidden = true;
+    c.appendChild(fi);
+    return c;
+  }
+
+  function render(focusId) {
+    grid.textContent = '';
+    state.lines.slice().sort(function (a, b) {
+      var A = stats(a.sales || []), B = stats(b.sales || []);
+      if (!A.n !== !B.n) return A.n ? -1 : 1;
+      return (B.avg - A.avg) || (B.n - A.n) || (B.sum - A.sum) || a.name.localeCompare(b.name, 'it');
+    }).forEach(function (l) { grid.appendChild(renderCard(l)); });
+    $('empty').hidden = state.lines.length > 0;
+    var count = 0, sum = 0;
+    state.lines.forEach(function (l) { var s = stats(l.sales || []); count += s.n; sum += s.sum; });
+    $('t-lines').textContent = String(state.lines.length);
+    $('t-count').textContent = String(count);
+    $('t-sum').textContent = count ? fmt.format(sum / count) : '—';
+    if (focusId) {
+      var f = $('in-' + focusId);
+      if (f) f.focus();
+    }
+  }
+
+  function save(focusId) {
+    state.updated = Date.now();
+    persist();
+    render(focusId);
+    scheduleSync();
+  }
+  function find(id) {
+    for (var i = 0; i < state.lines.length; i++) if (state.lines[i].id === id) return state.lines[i];
+    return null;
+  }
+
+  grid.addEventListener('submit', function (e) {
+    var rf = e.target.closest('.rename');
+    if (rf) {
+      e.preventDefault();
+      var rid = rf.closest('.card').dataset.id;
+      var nm = rf.querySelector('input').value.trim();
+      if (!nm) { say('Scrivi il nome della linea.'); return; }
+      var clash = state.lines.some(function (l) { return l.id !== rid && l.name.toLowerCase() === nm.toLowerCase(); });
+      if (clash) { say('Esiste già una linea con questo nome.'); return; }
+      var rl2 = find(rid);
+      if (rl2) { rl2.name = nm; save(); }
+      return;
+    }
+    var form = e.target.closest('.add');
+    if (!form) return;
+    e.preventDefault();
+    var id = form.closest('.card').dataset.id;
+    var v = parse(form.querySelector('input').value);
+    if (isNaN(v)) { say('Scrivi un importo valido, per esempio 110 oppure 89,50.'); return; }
+    var line = find(id);
+    if (!line) return;
+    line.sales = (line.sales || []).concat([{ v: v, t: Date.now() }]);
+    save(id);
+  });
+  grid.addEventListener('click', function (e) {
+    var card = e.target.closest('.card');
+    if (!card) return;
+    var id = card.dataset.id, conf = card.querySelector('.confirm');
+    if (e.target.closest('.toggle')) {
+      var tgl = e.target.closest('.toggle'), dd = card.querySelector('.details');
+      var nowOpen = dd.hidden;
+      dd.hidden = !nowOpen;
+      tgl.setAttribute('aria-expanded', nowOpen ? 'true' : 'false');
+      var ln = find(id);
+      tgl.querySelector('.toggle-text').textContent = toggleLabel(ln ? (ln.sales || []).length : 0, nowOpen);
+      if (nowOpen) openIds.add(id); else openIds.delete(id);
+      return;
+    }
+    if (e.target.closest('.card-thumb')) { card.querySelector('.card-file').click(); return; }
+    if (e.target.closest('.photo-rm')) {
+      var pl = find(id);
+      if (pl) { delete pl.img; save(); }
+      return;
+    }
+    if (e.target.closest('.edit-open')) {
+      var rf2 = card.querySelector('.rename');
+      rf2.hidden = false;
+      var ri2 = rf2.querySelector('input');
+      ri2.focus(); ri2.select();
+      return;
+    }
+    if (e.target.closest('.rename-cancel')) { card.querySelector('.rename').hidden = true; return; }
+    if (e.target.closest('.del-open')) { conf.hidden = false; return; }
+    if (e.target.closest('.del-no')) { conf.hidden = true; return; }
+    if (e.target.closest('.del-yes')) {
+      state.lines = state.lines.filter(function (l) { return l.id !== id; });
+      save();
+      return;
+    }
+    var rm = e.target.closest('.chips button');
+    if (rm) {
+      var line = find(id);
+      if (!line) return;
+      var s = line.sales.slice();
+      for (var i = 0; i < s.length; i++) {
+        if (String(s[i].t) === rm.dataset.t && String(s[i].v) === rm.dataset.v) { s.splice(i, 1); break; }
+      }
+      line.sales = s;
+      save(id);
+    }
+  });
+  grid.addEventListener('change', function (e) {
+    var f = e.target.closest('.card-file');
+    if (!f || !f.files[0]) return;
+    var line = find(f.closest('.card').dataset.id);
+    if (!line) return;
+    toThumb(f.files[0]).then(function (d) { line.img = d; save(); })
+      .catch(function () { say('Non riesco a leggere questa immagine. Prova con una foto JPG o PNG.'); });
+  });
+  var pending = null;
+  $('newline-pick').addEventListener('click', function () { $('newline-file').click(); });
+  $('newline-file').addEventListener('change', function () {
+    var f = this.files[0];
+    if (!f) return;
+    toThumb(f).then(function (d) { pending = d; setThumb($('newline-pick'), d); })
+      .catch(function () { say('Non riesco a leggere questa immagine. Prova con una foto JPG o PNG.'); });
+    this.value = '';
+  });
+  $('newline').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var inp = $('newline-name'), name = inp.value.trim();
+    if (!name) { say('Scrivi il nome della linea.'); return; }
+    var dup = state.lines.some(function (l) { return l.name.toLowerCase() === name.toLowerCase(); });
+    if (dup) { say('Esiste già una linea con questo nome.'); return; }
+    var nl = { id: uid(), name: name, sales: [] };
+    if (pending) nl.img = pending;
+    state.lines.push(nl);
+    pending = null;
+    setThumb($('newline-pick'), null);
+    inp.value = '';
+    save();
+  });
+
+  /* ---------- Sincronizzazione con un repository privato di GitHub ---------- */
+  function setSync(t) { $('sync').textContent = t; }
+  function api(opt) {
+    var url = 'https://api.github.com/repos/' + gh.repo + '/contents/data.json';
+    opt = opt || {};
+    opt.headers = {
+      'Authorization': 'Bearer ' + gh.token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json'
+    };
+    opt.cache = 'no-store';
+    return fetch(url, opt);
+  }
+  function enc(str) { return btoa(unescape(encodeURIComponent(str))); }
+  function dec(b64) { return decodeURIComponent(escape(atob(b64.replace(/\s/g, '')))); }
+
+  function push(retry) {
+    var body = { message: 'Aggiorna vendite', content: enc(JSON.stringify(state)) };
+    if (sha) body.sha = sha;
+    return api({ method: 'PUT', body: JSON.stringify(body) }).then(function (r) {
+      if ((r.status === 409 || r.status === 422) && !retry) {
+        return api().then(function (g) {
+          if (g.ok) return g.json().then(function (j) { sha = j.sha; return push(true); });
+          throw new Error('push ' + r.status);
+        });
+      }
+      if (!r.ok) throw new Error('push ' + r.status);
+      return r.json().then(function (j) { sha = j.content.sha; });
+    });
+  }
+  function pull() {
+    return api().then(function (r) {
+      if (r.status === 404) { sha = null; return push(); }
+      if (!r.ok) throw new Error('pull ' + r.status);
+      return r.json().then(function (j) {
+        sha = j.sha;
+        var remote = null;
+        try { remote = JSON.parse(dec(j.content)); } catch (e) {}
+        var ru = remote && Array.isArray(remote.lines) ? (remote.updated || 0) : 0;
+        if (ru > state.updated) { state = remote; persist(); render(); return; }
+        if (state.updated > ru) return push();
+      });
+    });
+  }
+  function runSync() {
+    if (!gh) return;
+    if (syncing) { again = true; return; }
+    syncing = true;
+    setSync('Sincronizzo…');
+    pull().then(function () {
+      setSync('Sincronizzato');
+    }).catch(function (e) {
+      var m = String(e && e.message || '');
+      setSync(/401|403/.test(m) ? 'Token non valido' : /404/.test(m) ? 'Repository non trovato' : 'Offline, riprovo più tardi');
+    }).then(function () {
+      syncing = false;
+      if (again) { again = false; runSync(); }
+    });
+  }
+  function scheduleSync() {
+    if (!gh) return;
+    setSync('Da salvare…');
+    clearTimeout(timer);
+    timer = setTimeout(runSync, 1200);
+  }
+
+  $('gh-save').addEventListener('click', function () {
+    var repo = $('gh-repo').value.trim(), token = $('gh-token').value.trim();
+    if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !token) { say('Scrivi il repository nel formato nome/repository e incolla il token.'); return; }
+    gh = { repo: repo, token: token };
+    try { localStorage.setItem(GHKEY, JSON.stringify(gh)); } catch (e) {}
+    $('gh-token').value = '';
+    sha = null;
+    runSync();
+  });
+  $('gh-off').addEventListener('click', function () {
+    gh = null;
+    try { localStorage.removeItem(GHKEY); } catch (e) {}
+    $('gh-repo').value = ''; $('gh-token').value = '';
+    setSync('Solo su questo dispositivo');
+  });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && gh) runSync(); });
+
+  if (gh) $('gh-repo').value = gh.repo;
+  render();
+  if (gh) runSync();
+})();
+</script>
+</body>
+</html>
