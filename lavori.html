@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lavori">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0f14" media="(prefers-color-scheme: dark)">
+<title>Lavori per cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #111318;
+  --muted: #6b7280;
+  --line: #e4e6eb;
+  --accent: #3b5bdb;
+  --danger: #c2362b;
+  --good: #1a8f4c; --good-bg: #e4f5ea; --good-ink: #0f5c31;
+  --doing-bg: #e6ebfc; --doing-ink: #223a9e;
+  --font: "Hanken Grotesk", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d0f14;
+    --surface: #151821;
+    --ink: #eceef3;
+    --muted: #8b93a7;
+    --line: #252a37;
+    --accent: #8da2ff;
+    --danger: #ff8b7e;
+    --good: #4cc38a; --good-bg: #12301f; --good-ink: #9be3bd;
+    --doing-bg: #1d2650; --doing-ink: #b6c3ff;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  padding: max(28px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(56px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+}
+.wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+header.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px 32px; }
+h1 { font-weight: 300; font-size: clamp(30px, 6vw, 44px); letter-spacing: -0.03em; line-height: 1.05; margin: 0; }
+.totals { display: flex; gap: 28px; margin: 0; flex-wrap: wrap; }
+.totals div { display: flex; flex-direction: column; }
+.totals dt { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.totals dd { margin: 0; font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+form.row { display: flex; gap: 10px; }
+input[type="text"], input[type="password"] {
+  flex: 1 1 auto; min-width: 0; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px 14px; font-size: 16px;
+}
+input::placeholder { color: var(--muted); }
+.btn { background: var(--ink); color: var(--bg); border: 0; border-radius: 10px; padding: 12px 18px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn.danger { background: var(--danger); color: var(--surface); }
+.btn.small { padding: 8px 14px; font-size: 14px; }
+.link { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 13px; padding: 6px 0; }
+.link:hover { color: var(--ink); }
+.link.primary { color: var(--accent); font-weight: 600; }
+.link.danger:hover, .link.armed { color: var(--danger); }
+
+#msg { margin: 0; color: var(--danger); font-size: 14px; }
+#grid { display: flex; flex-direction: column; gap: 14px; }
+#empty { color: var(--muted); text-align: center; padding: 40px 12px; border: 1px dashed var(--line); border-radius: 16px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; min-width: 0; overflow: hidden; }
+.head { display: flex; flex-direction: column; gap: 12px; width: 100%; text-align: left; background: none; border: 0; padding: 20px 22px; cursor: pointer; }
+.head-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.name { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; overflow-wrap: anywhere; }
+.chev { color: var(--muted); transition: transform 0.2s; flex: none; }
+.head[aria-expanded="true"] .chev { transform: rotate(180deg); }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { border-radius: 999px; padding: 3px 11px; font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.pill.doing { background: var(--doing-bg); color: var(--doing-ink); }
+.pill.good { background: var(--good-bg); color: var(--good-ink); }
+.pill.none { border: 1px solid var(--line); color: var(--muted); font-weight: 400; }
+
+.details { border-top: 1px solid var(--line); padding: 18px 22px 22px; display: flex; flex-direction: column; gap: 24px; }
+.sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.sec-head h3 { margin: 0; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+.sec-head h3.doing { color: var(--accent); }
+.sec-head h3.good { color: var(--good); }
+.sec-head h3.muted { color: var(--muted); }
+.sec-sum { font-variant-numeric: tabular-nums; font-weight: 600; }
+.sec-sum small { color: var(--muted); font-weight: 400; }
+.jobs { list-style: none; margin: 4px 0 0; padding: 0; }
+.job { padding: 12px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
+.job:first-child { border-top: 0; }
+.jtop { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; }
+.jtext { font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+.jprice { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.jprice.none { color: var(--muted); font-weight: 400; font-size: 13px; }
+.jmeta { color: var(--muted); font-size: 13px; }
+.jacts { display: flex; flex-wrap: wrap; gap: 0 18px; }
+.empty-line { color: var(--muted); font-size: 14px; padding: 6px 0; }
+.addjob, .jedit { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.addjob .jt, .jedit .jt { flex: 1 1 100%; }
+.addjob .jp, .jedit .jp { flex: 1 1 120px; }
+.tools { display: flex; flex-wrap: wrap; gap: 0 18px; border-top: 1px solid var(--line); padding-top: 10px; }
+.rename { display: flex; gap: 8px; flex-wrap: wrap; }
+.rename input { flex: 1 1 160px; }
+.confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+.confirm span { flex: 1 1 100%; }
+
+details.sync { border-top: 1px solid var(--line); padding-top: 18px; color: var(--muted); font-size: 14px; }
+details.sync summary { cursor: pointer; display: flex; justify-content: space-between; gap: 12px; }
+.sync-body { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.sync-body p { margin: 0; }
+.sync-body .row2 { display: flex; flex-wrap: wrap; gap: 8px; }
+.sync-body label { color: var(--ink); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Lavori per cliente</h1>
+    <dl class="totals" aria-label="Totali">
+      <div><dt>Clienti</dt><dd id="t-clients">0</dd></div>
+      <div><dt>In corso</dt><dd id="t-doing">0</dd></div>
+      <div><dt>Da fatturare</dt><dd id="t-todo">0,00 €</dd></div>
+    </dl>
+  </header>
+
+  <form class="row" id="newclient" autocomplete="off">
+    <label class="sr-only" for="newclient-name">Nome del nuovo cliente</label>
+    <input type="text" id="newclient-name" maxlength="80" placeholder="Nuovo cliente">
+    <button class="btn" type="submit">Aggiungi</button>
+  </form>
+  <p id="msg" role="status" hidden></p>
+
+  <div id="empty" hidden>Nessun cliente per ora. Scrivi un nome qui sopra, poi aggiungi i lavori che stai facendo.</div>
+  <section id="grid" aria-label="Clienti"></section>
+
+  <details class="sync" id="syncbox">
+    <summary><span>Sincronizzazione tra dispositivi</span><span id="sync">Solo su questo dispositivo</span></summary>
+    <div class="sync-body">
+      <p>I dati si salvano su questo dispositivo. Per vederli uguali su computer, telefono e iPad, collega lo stesso repository privato che usi per le vendite. Se l'hai già collegato da un'altra pagina di questo sito, qui è già pronto.</p>
+      <label for="gh-repo">Repository dei dati</label>
+      <input type="text" id="gh-repo" placeholder="tuonome/vendite-dati" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <label for="gh-token">Token di accesso</label>
+      <input type="password" id="gh-token" placeholder="github_pat_…" autocomplete="off">
+      <div class="row2">
+        <button class="btn small" type="button" id="gh-save">Salva e collega</button>
+        <button class="btn ghost small" type="button" id="gh-off">Scollega</button>
+      </div>
+    </div>
+  </details>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const KEY = 'lavori.v1', GHKEY = 'vendite.gh', FILE = 'lavori.json';
+  const fmt = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+  const monthFmt = new Intl.DateTimeFormat('it-IT', { month: 'short', year: 'numeric' });
+  const dayFmt = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short', year: 'numeric' });
+  const $ = (id) => document.getElementById(id);
+  const grid = $('grid');
+  let state = loadState();
+  let gh = loadGh();
+  let sha = null, timer = null, syncing = false, again = false;
+  let editing = null;
+  const openIds = new Set();
+  const openInv = new Set();
+
+  /* ---------- dati ---------- */
+  function loadState() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY));
+      if (s && Array.isArray(s.clients)) return s;
+    } catch (e) {}
+    return { clients: [], updated: 0 };
+  }
+  function loadGh() {
+    try {
+      const g = JSON.parse(localStorage.getItem(GHKEY));
+      if (g && g.repo && g.token) return g;
+    } catch (e) {}
+    return null;
+  }
+  function persist() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (e) { say('Questo browser non permette di salvare i dati. Esci dalla navigazione privata.'); }
+  }
+  function uid() { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-3); }
+  function say(m) {
+    const el = $('msg');
+    el.textContent = m || '';
+    el.hidden = !m;
+    clearTimeout(say.t);
+    if (m) say.t = setTimeout(() => { el.hidden = true; }, 6000);
+  }
+  function parsePrice(s) {
+    let t = String(s).replace(/€/g, '').replace(/\s/g, '');
+    if (!t) return null;
+    if (t.indexOf(',') >= 0) t = t.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    const n = Number(t);
+    if (!isFinite(n) || n < 0 || n >= 1e9) return NaN;
+    return Math.round(n * 100) / 100;
+  }
+  const cents = (x) => Math.round(x * 100) / 100;
+  const priceOf = (j) => (typeof j.price === 'number' ? j.price : null);
+
+  function cstats(c) {
+    const s = { doing: 0, doingSum: 0, doingNo: 0, todo: 0, todoSum: 0, todoNo: 0, inv: 0, invSum: 0, invNo: 0 };
+    for (const j of c.jobs || []) {
+      const p = priceOf(j);
+      const k = j.status === 'doing' ? 'doing' : j.status === 'done' ? 'todo' : 'inv';
+      s[k]++;
+      if (p === null) s[k + 'No']++; else s[k + 'Sum'] += p;
+    }
+    s.doingSum = cents(s.doingSum); s.todoSum = cents(s.todoSum); s.invSum = cents(s.invSum);
+    return s;
+  }
+  function find(id) { return state.clients.find((c) => c.id === id) || null; }
+
+  function h(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function btn(text, cls, act) {
+    const b = h('button', cls, text);
+    b.type = 'button';
+    if (act) b.dataset.act = act;
+    return b;
+  }
+
+  /* ---------- disegno ---------- */
+  function jobRow(c, j) {
+    const li = h('li', 'job');
+    li.dataset.jid = j.id;
+
+    if (editing === j.id) {
+      const f = h('form', 'jedit');
+      f.autocomplete = 'off';
+      const t = h('input', 'jt'); t.type = 'text'; t.id = 'je-t-' + j.id; t.maxLength = 200; t.value = j.text;
+      t.setAttribute('aria-label', 'Descrizione del lavoro');
+      const p = h('input', 'jp'); p.type = 'text'; p.id = 'je-p-' + j.id; p.setAttribute('inputmode', 'decimal');
+      p.setAttribute('aria-label', 'Prezzo in euro');
+      p.placeholder = 'Prezzo (facoltativo)';
+      p.value = priceOf(j) === null ? '' : String(priceOf(j)).replace('.', ',');
+      const s = h('button', 'btn small', 'Salva'); s.type = 'submit';
+      const x = btn('Annulla', 'btn ghost small', 'edit-cancel');
+      f.append(t, p, s, x);
+      li.append(f);
+      return li;
+    }
+
+    const top = h('div', 'jtop');
+    top.append(h('span', 'jtext', j.text));
+    const p = priceOf(j);
+    top.append(h('span', 'jprice' + (p === null ? ' none' : ''), p === null ? 'prezzo da definire' : fmt.format(p)));
+    li.append(top);
+
+    let meta;
+    if (j.status === 'doing') meta = 'Aggiunto il ' + dayFmt.format(j.created);
+    else if (j.status === 'done') meta = 'Completato il ' + dayFmt.format(j.done || j.created);
+    else meta = 'Fatturato il ' + dayFmt.format(j.invoiced || j.done || j.created);
+    li.append(h('div', 'jmeta', meta));
+
+    const acts = h('div', 'jacts');
+    if (j.status === 'doing') {
+      acts.append(btn('Completato', 'link primary', 'done'));
+    } else if (j.status === 'done') {
+      acts.append(btn('Fatturato', 'link primary', 'inv'), btn('Riapri', 'link', 'reopen'));
+    } else {
+      acts.append(btn('Annulla fattura', 'link', 'uninv'));
+    }
+    if (j.status !== 'invoiced') acts.append(btn('Modifica', 'link', 'edit'));
+    acts.append(btn('Elimina', 'link danger', 'del'));
+    li.append(acts);
+    return li;
+  }
+
+  function sum(label, s, no) {
+    const e = h('span', 'sec-sum', label + fmt.format(s));
+    if (no) e.append(h('small', null, ' + ' + no + ' senza prezzo'));
+    return e;
+  }
+
+  function section(title, tone, count, total, noPrice, label) {
+    const head = h('div', 'sec-head');
+    head.append(h('h3', tone, title + (count ? ' (' + count + ')' : '')));
+    if (count) head.append(sum(label || '', total, noPrice));
+    return head;
+  }
+
+  function renderClient(c) {
+    const jobs = (c.jobs || []).slice();
+    const st = cstats(c);
+    const isOpen = openIds.has(c.id);
+    const card = h('article', 'card');
+    card.dataset.id = c.id;
+
+    const head = h('button', 'head');
+    head.type = 'button';
+    head.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    head.setAttribute('aria-controls', 'd-' + c.id);
+    const row = h('span', 'head-row');
+    row.append(h('span', 'name', c.name), h('span', 'chev', '▾'));
+    head.append(row);
+    const pills = h('span', 'pills');
+    if (st.doing) pills.append(h('span', 'pill doing', st.doing + ' in corso'));
+    if (st.todo) pills.append(h('span', 'pill good', 'Da fatturare ' + fmt.format(st.todoSum) + (st.todoNo ? ' + ' + st.todoNo + ' senza prezzo' : '')));
+    if (!st.doing && !st.todo) pills.append(h('span', 'pill none', st.inv ? 'Tutto fatturato' : 'Nessun lavoro'));
+    head.append(pills);
+    card.append(head);
+
+    const d = h('div', 'details');
+    d.id = 'd-' + c.id;
+    d.hidden = !isOpen;
+
+    /* in corso */
+    const doing = jobs.filter((j) => j.status === 'doing').sort((a, b) => b.created - a.created);
+    const s1 = h('div');
+    s1.append(section('In corso', 'doing', st.doing, st.doingSum, st.doingNo));
+    const l1 = h('ul', 'jobs');
+    doing.forEach((j) => l1.append(jobRow(c, j)));
+    if (!doing.length) l1.append(h('li', 'empty-line', 'Nessun lavoro in corso.'));
+    s1.append(l1);
+    const add = h('form', 'addjob');
+    add.autocomplete = 'off';
+    const lt = h('label', 'sr-only', 'Descrizione del nuovo lavoro'); lt.htmlFor = 'jt-' + c.id;
+    const it = h('input', 'jt'); it.type = 'text'; it.id = 'jt-' + c.id; it.maxLength = 200; it.placeholder = 'Nuovo lavoro, es. Etichetta 50 cl';
+    const lp = h('label', 'sr-only', 'Prezzo in euro'); lp.htmlFor = 'jp-' + c.id;
+    const ip = h('input', 'jp'); ip.type = 'text'; ip.id = 'jp-' + c.id; ip.setAttribute('inputmode', 'decimal'); ip.placeholder = 'Prezzo (facoltativo)';
+    const ab = h('button', 'btn', 'Aggiungi'); ab.type = 'submit';
+    add.append(lt, it, lp, ip, ab);
+    s1.append(add);
+    d.append(s1);
+
+    /* completati */
+    const done = jobs.filter((j) => j.status === 'done').sort((a, b) => (b.done || 0) - (a.done || 0));
+    const s2 = h('div');
+    s2.append(section('Completati', 'good', st.todo, st.todoSum, st.todoNo, 'Da fatturare '));
+    const l2 = h('ul', 'jobs');
+    done.forEach((j) => l2.append(jobRow(c, j)));
+    if (!done.length) l2.append(h('li', 'empty-line', 'Quando completi un lavoro compare qui.'));
+    s2.append(l2);
+    if (done.length > 1) {
+      const all = btn('Segna tutti come fatturati', 'link primary', 'invall');
+      s2.append(all);
+    }
+    d.append(s2);
+
+    /* fatturati */
+    if (st.inv) {
+      const invs = jobs.filter((j) => j.status === 'invoiced').sort((a, b) => (b.invoiced || 0) - (a.invoiced || 0));
+      const s3 = h('div');
+      const shown = openInv.has(c.id);
+      const t = btn((shown ? 'Nascondi' : 'Mostra') + ' i fatturati (' + st.inv + ') ' + fmt.format(st.invSum), 'link', 'toggleinv');
+      s3.append(t);
+      const l3 = h('ul', 'jobs');
+      l3.hidden = !shown;
+      invs.forEach((j) => l3.append(jobRow(c, j)));
+      s3.append(l3);
+      d.append(s3);
+    }
+
+    /* strumenti cliente */
+    const tools = h('div', 'tools');
+    tools.append(btn('Modifica nome', 'link', 'rename-open'), btn('Elimina cliente', 'link danger', 'cdel-open'));
+    d.append(tools);
+    const rn = h('form', 'rename');
+    rn.hidden = true; rn.autocomplete = 'off';
+    const rl = h('label', 'sr-only', 'Nuovo nome del cliente'); rl.htmlFor = 'rn-' + c.id;
+    const ri = h('input'); ri.type = 'text'; ri.id = 'rn-' + c.id; ri.maxLength = 80; ri.value = c.name;
+    const rs = h('button', 'btn small', 'Salva'); rs.type = 'submit';
+    rn.append(rl, ri, rs, btn('Annulla', 'btn ghost small', 'rename-cancel'));
+    d.append(rn);
+    const conf = h('div', 'confirm');
+    conf.hidden = true;
+    conf.append(h('span', null, 'Elimino il cliente e tutti i suoi lavori?'),
+      btn('Sì, elimina', 'btn danger small', 'cdel-yes'), btn('Annulla', 'btn ghost small', 'cdel-no'));
+    d.append(conf);
+
+    card.append(d);
+    return card;
+  }
+
+  function render(focusId) {
+    const keep = {};
+    grid.querySelectorAll('input[type="text"]').forEach((i) => { if (i.id) keep[i.id] = i.value; });
+    const active = document.activeElement;
+    const activeId = active && active.id && grid.contains(active) ? active.id : null;
+
+    grid.textContent = '';
+    const open = (c) => { const s = cstats(c); return s.doing || s.todo ? 0 : 1; };
+    state.clients.slice()
+      .sort((a, b) => open(a) - open(b) || a.name.localeCompare(b.name, 'it'))
+      .forEach((c) => grid.append(renderClient(c)));
+    $('empty').hidden = state.clients.length > 0;
+
+    let doing = 0, todo = 0;
+    state.clients.forEach((c) => { const s = cstats(c); doing += s.doing; todo += s.todoSum; });
+    $('t-clients').textContent = String(state.clients.length);
+    $('t-doing').textContent = String(doing);
+    $('t-todo').textContent = fmt.format(cents(todo));
+
+    Object.keys(keep).forEach((id) => {
+      const el = document.getElementById(id);
+      if (el && keep[id] !== '' && el.value !== keep[id] && el.closest('form.addjob')) el.value = keep[id];
+    });
+    const target = focusId || activeId;
+    if (target) {
+      const f = document.getElementById(target);
+      if (f && f.tagName === 'INPUT') f.focus();
+    }
+  }
+
+  function save(focusId) {
+    state.updated = Date.now();
+    persist();
+    render(focusId);
+    scheduleSync();
+  }
+
+  /* ---------- azioni ---------- */
+  grid.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const card = form.closest('.card');
+    const c = card && find(card.dataset.id);
+    if (!c) return;
+
+    if (form.classList.contains('addjob')) {
+      const ti = form.querySelector('.jt'), pi = form.querySelector('.jp');
+      const text = ti.value.trim();
+      const price = parsePrice(pi.value);
+      if (!text) { say('Scrivi che lavoro è.'); return; }
+      if (Number.isNaN(price)) { say('Scrivi un prezzo valido, per esempio 120 oppure 49,50.'); return; }
+      c.jobs = c.jobs || [];
+      c.jobs.push({ id: uid(), text: text, price: price, status: 'doing', created: Date.now(), done: null, invoiced: null });
+      ti.value = ''; pi.value = '';
+      save('jt-' + c.id);
+      return;
+    }
+    if (form.classList.contains('jedit')) {
+      const j = (c.jobs || []).find((x) => x.id === form.closest('.job').dataset.jid);
+      if (!j) return;
+      const text = form.querySelector('.jt').value.trim();
+      const price = parsePrice(form.querySelector('.jp').value);
+      if (!text) { say('Scrivi che lavoro è.'); return; }
+      if (Number.isNaN(price)) { say('Scrivi un prezzo valido, per esempio 120 oppure 49,50.'); return; }
+      j.text = text; j.price = price;
+      editing = null;
+      save();
+      return;
+    }
+    if (form.classList.contains('rename')) {
+      const nm = form.querySelector('input').value.trim();
+      if (!nm) { say('Scrivi il nome del cliente.'); return; }
+      if (state.clients.some((x) => x.id !== c.id && x.name.toLowerCase() === nm.toLowerCase())) { say('Esiste già un cliente con questo nome.'); return; }
+      c.name = nm;
+      save();
+    }
+  });
+
+  grid.addEventListener('click', (e) => {
+    const card = e.target.closest('.card');
+    if (!card) return;
+    const c = find(card.dataset.id);
+    if (!c) return;
+
+    if (e.target.closest('.head')) {
+      const d = card.querySelector('.details');
+      const willOpen = d.hidden;
+      d.hidden = !willOpen;
+      card.querySelector('.head').setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      if (willOpen) openIds.add(c.id); else openIds.delete(c.id);
+      return;
+    }
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    const li = b.closest('.job');
+    const j = li ? (c.jobs || []).find((x) => x.id === li.dataset.jid) : null;
+
+    switch (act) {
+      case 'done': if (j) { j.status = 'done'; j.done = Date.now(); save(); } break;
+      case 'reopen': if (j) { j.status = 'doing'; j.done = null; save(); } break;
+      case 'inv': if (j) { j.status = 'invoiced'; j.invoiced = Date.now(); save(); } break;
+      case 'uninv': if (j) { j.status = 'done'; j.invoiced = null; save(); } break;
+      case 'invall': {
+        const now = Date.now();
+        (c.jobs || []).forEach((x) => { if (x.status === 'done') { x.status = 'invoiced'; x.invoiced = now; } });
+        save();
+        break;
+      }
+      case 'toggleinv':
+        if (openInv.has(c.id)) openInv.delete(c.id); else openInv.add(c.id);
+        render();
+        break;
+      case 'edit': if (j) { editing = j.id; render('je-t-' + j.id); } break;
+      case 'edit-cancel': editing = null; render(); break;
+      case 'del':
+        if (!j) break;
+        if (b.dataset.armed) {
+          c.jobs = c.jobs.filter((x) => x.id !== j.id);
+          save();
+        } else {
+          b.dataset.armed = '1';
+          b.textContent = 'Confermi?';
+          b.classList.add('armed');
+          setTimeout(() => {
+            if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Elimina'; b.classList.remove('armed'); }
+          }, 3000);
+        }
+        break;
+      case 'rename-open': {
+        const f = card.querySelector('.rename');
+        f.hidden = false;
+        const i = f.querySelector('input');
+        i.focus(); i.select();
+        break;
+      }
+      case 'rename-cancel': card.querySelector('.rename').hidden = true; break;
+      case 'cdel-open': card.querySelector('.confirm').hidden = false; break;
+      case 'cdel-no': card.querySelector('.confirm').hidden = true; break;
+      case 'cdel-yes':
+        state.clients = state.clients.filter((x) => x.id !== c.id);
+        openIds.delete(c.id); openInv.delete(c.id);
+        save();
+        break;
+    }
+  });
+
+  $('newclient').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const inp = $('newclient-name');
+    const name = inp.value.trim();
+    if (!name) { say('Scrivi il nome del cliente.'); return; }
+    if (state.clients.some((c) => c.name.toLowerCase() === name.toLowerCase())) { say('Esiste già un cliente con questo nome.'); return; }
+    const c = { id: uid(), name: name, jobs: [] };
+    state.clients.push(c);
+    openIds.add(c.id);
+    inp.value = '';
+    save('jt-' + c.id);
+  });
+
+  /* ---------- sincronizzazione con il repository privato di GitHub ---------- */
+  function setSync(t) { $('sync').textContent = t; }
+  function api(opt) {
+    const url = 'https://api.github.com/repos/' + gh.repo + '/contents/' + FILE;
+    opt = opt || {};
+    opt.headers = {
+      'Authorization': 'Bearer ' + gh.token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json'
+    };
+    opt.cache = 'no-store';
+    return fetch(url, opt);
+  }
+  function enc(str) { return btoa(unescape(encodeURIComponent(str))); }
+  function dec(b64) { return decodeURIComponent(escape(atob(b64.replace(/\s/g, '')))); }
+
+  function push(retry) {
+    const body = { message: 'Aggiorna lavori', content: enc(JSON.stringify(state)) };
+    if (sha) body.sha = sha;
+    return api({ method: 'PUT', body: JSON.stringify(body) }).then((r) => {
+      if ((r.status === 409 || r.status === 422) && !retry) {
+        return api().then((g) => {
+          if (g.ok) return g.json().then((j) => { sha = j.sha; return push(true); });
+          throw new Error('push ' + r.status);
+        });
+      }
+      if (!r.ok) throw new Error('push ' + r.status);
+      return r.json().then((j) => { sha = j.content.sha; });
+    });
+  }
+  function pull() {
+    return api().then((r) => {
+      if (r.status === 404) { sha = null; return state.updated > 0 ? push() : undefined; }
+      if (!r.ok) throw new Error('pull ' + r.status);
+      return r.json().then((j) => {
+        sha = j.sha;
+        let remote = null;
+        try { remote = JSON.parse(dec(j.content)); } catch (e) {}
+        const ru = remote && Array.isArray(remote.clients) ? (remote.updated || 0) : 0;
+        if (ru > state.updated) { state = remote; persist(); render(); return; }
+        if (state.updated > ru) return push();
+      });
+    });
+  }
+  function runSync() {
+    if (!gh) return;
+    if (syncing) { again = true; return; }
+    syncing = true;
+    setSync('Sincronizzo…');
+    pull().then(() => {
+      setSync('Sincronizzato');
+    }).catch((e) => {
+      const m = String((e && e.message) || '');
+      setSync(/401|403/.test(m) ? 'Token non valido' : /404/.test(m) ? 'Repository non trovato' : 'Offline, riprovo più tardi');
+    }).then(() => {
+      syncing = false;
+      if (again) { again = false; runSync(); }
+    });
+  }
+  function scheduleSync() {
+    if (!gh) return;
+    setSync('Da salvare…');
+    clearTimeout(timer);
+    timer = setTimeout(runSync, 1200);
+  }
+
+  $('gh-save').addEventListener('click', () => {
+    const repo = $('gh-repo').value.trim(), token = $('gh-token').value.trim();
+    if (!/^[\w.-]+\/[\w.-]+$/.test(repo) || !token) { say('Scrivi il repository nel formato nome/repository e incolla il token.'); return; }
+    gh = { repo: repo, token: token };
+    try { localStorage.setItem(GHKEY, JSON.stringify(gh)); } catch (e) {}
+    $('gh-token').value = '';
+    sha = null;
+    runSync();
+  });
+  $('gh-off').addEventListener('click', () => {
+    gh = null;
+    try { localStorage.removeItem(GHKEY); } catch (e) {}
+    $('gh-repo').value = ''; $('gh-token').value = '';
+    setSync('Solo su questo dispositivo');
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && gh) runSync(); });
+
+  if (gh) $('gh-repo').value = gh.repo;
+  render();
+  if (gh) runSync();
+})();
+</script>
+</body>
+</html>
